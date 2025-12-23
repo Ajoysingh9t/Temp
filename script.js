@@ -1,294 +1,289 @@
-// Mobile Menu Toggle
-const menuBtn = document.querySelector('#1st');
-const nav3rd = document.querySelector('#3rd');
-let menuOpen = false;
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Script loaded!');
 
-menuBtn.addEventListener('click', () => {
-    menuOpen = !menuOpen;
-    if (menuOpen) {
-        nav3rd.classList.remove('hidden');
-        nav3rd.classList.add('flex');
-    } else {
-        nav3rd.classList.add('hidden');
-        nav3rd.classList.remove('flex');
-    }
-});
-
-// Smooth Scroll for "See Collection" buttons
-const collectionBtns = document.querySelectorAll('button');
-collectionBtns.forEach(btn => {
-    if (btn.textContent.includes('SEE COLLECTION')) {
-        btn.addEventListener('click', () => {
-            const productSection = document.querySelector('#product-scroll');
-            productSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // ========== MOBILE MENU TOGGLE ==========
+    const menuBtn = document.querySelector('#1st');
+    const nav3rd = document.querySelector('#3rd');
+    
+    if (menuBtn && nav3rd) {
+        menuBtn.addEventListener('click', () => {
+            nav3rd.classList.toggle('hidden');
+            nav3rd.classList.toggle('flex');
+            console.log('Menu toggled');
         });
     }
-});
 
-// Product Scroll Functionality
-const productScroll = document.querySelector('#product-scroll');
-const backIcon = document.querySelector('.backicon');
-const forwIcon = document.querySelector('.forwicon');
+    // ========== PRODUCT HORIZONTAL SCROLL ==========
+    const productScroll = document.getElementById('product-scroll');
+    const backIcon = document.querySelector('.backicon');
+    const forwIcon = document.querySelector('.forwicon');
 
-const scrollAmount = 300;
+    if (backIcon && forwIcon && productScroll) {
+        forwIcon.addEventListener('click', () => {
+            productScroll.scrollBy({
+                left: 350,
+                behavior: 'smooth'
+            });
+        });
 
-forwIcon.addEventListener('click', () => {
-    productScroll.scrollBy({
-        left: scrollAmount,
-        behavior: 'smooth'
-    });
-});
+        backIcon.addEventListener('click', () => {
+            productScroll.scrollBy({
+                left: -350,
+                behavior: 'smooth'
+            });
+        });
 
-backIcon.addEventListener('click', () => {
-    productScroll.scrollBy({
-        left: -scrollAmount,
-        behavior: 'smooth'
-    });
-});
+        // Update button opacity based on scroll position
+        productScroll.addEventListener('scroll', () => {
+            if (productScroll.scrollLeft <= 0) {
+                backIcon.style.opacity = '0.3';
+            } else {
+                backIcon.style.opacity = '0.5';
+            }
 
-// Update scroll buttons visibility
-function updateScrollButtons() {
-    const maxScroll = productScroll.scrollWidth - productScroll.clientWidth;
-    
-    if (productScroll.scrollLeft <= 0) {
-        backIcon.style.opacity = '0.3';
-        backIcon.style.pointerEvents = 'none';
-    } else {
-        backIcon.style.opacity = '0.5';
-        backIcon.style.pointerEvents = 'auto';
+            const maxScroll = productScroll.scrollWidth - productScroll.clientWidth;
+            if (productScroll.scrollLeft >= maxScroll - 5) {
+                forwIcon.style.opacity = '0.3';
+            } else {
+                forwIcon.style.opacity = '0.5';
+            }
+        });
     }
-    
-    if (productScroll.scrollLeft >= maxScroll - 10) {
-        forwIcon.style.opacity = '0.3';
-        forwIcon.style.pointerEvents = 'none';
-    } else {
-        forwIcon.style.opacity = '0.5';
-        forwIcon.style.pointerEvents = 'auto';
-    }
-}
 
-productScroll.addEventListener('scroll', updateScrollButtons);
-updateScrollButtons();
-
-// Shopping Cart Functionality
-let cart = [];
-let wishlist = [];
-
-// Add to Cart functionality for product items
-const products = document.querySelectorAll('#product-scroll > div');
-products.forEach((product, index) => {
-    const productData = {
-        id: index,
-        name: product.querySelector('h1').textContent,
-        price: product.querySelector('p').textContent,
-        image: product.querySelector('img').src
-    };
-    
-    // Add click event to product
-    product.style.cursor = 'pointer';
-    product.addEventListener('click', (e) => {
-        if (!e.target.closest('button')) {
-            addToCart(productData);
-            showNotification('Item added to cart!');
+    // ========== SMOOTH SCROLL FOR BUTTONS ==========
+    const seeCollectionBtns = document.querySelectorAll('button');
+    seeCollectionBtns.forEach(btn => {
+        if (btn.textContent.includes('SEE COLLECTION')) {
+            btn.addEventListener('click', () => {
+                const newOnlineSection = document.getElementById('product-scroll');
+                if (newOnlineSection) {
+                    newOnlineSection.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                }
+            });
         }
     });
-});
 
-function addToCart(product) {
-    cart.push(product);
-    updateCartCount();
-}
+    // ========== SHOPPING CART ==========
+    let cart = [];
+    const cartBtn = document.querySelector('#3rd > div:nth-child(4)');
 
-function updateCartCount() {
-    const cartElement = document.querySelector('#3rd > div:last-child');
-    let cartCount = cartElement.querySelector('.cart-count');
-    
-    if (!cartCount) {
-        cartCount = document.createElement('span');
-        cartCount.className = 'cart-count';
-        cartCount.style.cssText = 'position: absolute; top: -8px; right: -8px; background: #D59680; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px;';
-        cartElement.style.position = 'relative';
-        cartElement.appendChild(cartCount);
+    function updateCartCount() {
+        if (!cartBtn) return;
+        
+        let badge = cartBtn.querySelector('.cart-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'cart-badge';
+            badge.style.cssText = `
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: #ef4444;
+                color: white;
+                border-radius: 50%;
+                width: 22px;
+                height: 22px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: bold;
+            `;
+            cartBtn.style.position = 'relative';
+            cartBtn.appendChild(badge);
+        }
+        
+        badge.textContent = cart.length;
+        badge.style.display = cart.length > 0 ? 'flex' : 'none';
     }
-    
-    cartCount.textContent = cart.length;
-    cartCount.style.display = cart.length > 0 ? 'flex' : 'none';
-}
 
-// Notification system
-function showNotification(message) {
-    const notification = document.createElement('div');
-    notification.textContent = message;
-    notification.style.cssText = `
+    function addToCart(item) {
+        cart.push(item);
+        updateCartCount();
+        showNotification('✓ Added to cart!');
+    }
+
+    // Add click to products
+    const productItems = document.querySelectorAll('#product-scroll > div');
+    productItems.forEach((product, index) => {
+        product.style.cursor = 'pointer';
+        product.addEventListener('click', () => {
+            const name = product.querySelector('h1')?.textContent || 'Product';
+            const price = product.querySelector('p')?.textContent || '$0';
+            addToCart({ id: index, name, price });
+        });
+    });
+
+    // Cart click to view
+    if (cartBtn) {
+        cartBtn.addEventListener('click', () => {
+            if (cart.length === 0) {
+                showNotification('Your cart is empty');
+            } else {
+                showNotification(`You have ${cart.length} item(s) in cart`);
+            }
+        });
+    }
+
+    // ========== NOTIFICATION SYSTEM ==========
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: #D59680;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.4s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.4s ease';
+            setTimeout(() => notification.remove(), 400);
+        }, 2500);
+    }
+
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // ========== SEARCH FUNCTIONALITY ==========
+    const searchBtn = document.querySelector('#3rd > div:nth-child(1)');
+    if (searchBtn) {
+        searchBtn.style.cursor = 'pointer';
+        searchBtn.addEventListener('click', () => {
+            showNotification('🔍 Search feature');
+        });
+    }
+
+    // ========== WISHLIST ==========
+    const wishlistBtn = document.querySelector('#3rd > div:nth-child(2)');
+    if (wishlistBtn) {
+        wishlistBtn.style.cursor = 'pointer';
+        wishlistBtn.addEventListener('click', () => {
+            showNotification('❤️ Wishlist feature');
+        });
+    }
+
+    // ========== ACCOUNT ==========
+    const accountBtn = document.querySelector('#3rd > div:nth-child(3)');
+    if (accountBtn) {
+        accountBtn.style.cursor = 'pointer';
+        accountBtn.addEventListener('click', () => {
+            showNotification('👤 Account feature');
+        });
+    }
+
+    // ========== NEWSLETTER SUBSCRIPTION ==========
+    const footerSection = document.querySelector('.w-full.bg-red-100');
+    if (footerSection) {
+        const subscribeBtn = footerSection.querySelector('button');
+        const emailInput = footerSection.querySelector('input[type="text"]');
+        
+        if (subscribeBtn && emailInput) {
+            subscribeBtn.addEventListener('click', () => {
+                const email = emailInput.value.trim();
+                if (email && email.includes('@') && email.includes('.')) {
+                    showNotification('✓ Subscribed successfully!');
+                    emailInput.value = '';
+                } else {
+                    showNotification('⚠️ Please enter valid email');
+                }
+            });
+
+            emailInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    subscribeBtn.click();
+                }
+            });
+        }
+    }
+
+    // ========== BACK TO TOP BUTTON ==========
+    const backToTop = document.createElement('button');
+    backToTop.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
+    backToTop.style.cssText = `
         position: fixed;
-        top: 20px;
-        right: 20px;
+        bottom: 30px;
+        right: 30px;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
         background: #D59680;
         color: white;
-        padding: 15px 25px;
-        border-radius: 8px;
-        font-weight: bold;
-        z-index: 1000;
-        animation: slideIn 0.3s ease-out;
+        border: none;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        z-index: 9998;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
     `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => notification.remove(), 300);
-    }, 2000);
-}
+    document.body.appendChild(backToTop);
 
-// Add animation keyframes
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-`;
-document.head.appendChild(style);
-
-// Search Functionality
-const searchBtn = document.querySelector('#3rd > div:first-child');
-searchBtn.addEventListener('click', () => {
-    const searchQuery = prompt('What are you looking for?');
-    if (searchQuery) {
-        showNotification(`Searching for: ${searchQuery}`);
-        // Here you would typically filter products
-    }
-});
-
-// Wishlist Functionality
-const wishlistBtn = document.querySelector('#3rd > div:nth-child(2)');
-wishlistBtn.addEventListener('click', () => {
-    showNotification('Wishlist feature coming soon!');
-});
-
-// Account Functionality
-const accountBtn = document.querySelector('#3rd > div:nth-child(3)');
-accountBtn.addEventListener('click', () => {
-    showNotification('Please log in to access your account');
-});
-
-// Newsletter Subscription
-const subscribeBtn = document.querySelector('.w-full.bg-red-100 button');
-const emailInput = document.querySelector('.w-full.bg-red-100 input');
-
-if (subscribeBtn && emailInput) {
-    subscribeBtn.addEventListener('click', () => {
-        const email = emailInput.value.trim();
-        if (email && email.includes('@')) {
-            showNotification('Successfully subscribed to newsletter!');
-            emailInput.value = '';
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 400) {
+            backToTop.style.display = 'flex';
         } else {
-            showNotification('Please enter a valid email address');
+            backToTop.style.display = 'none';
         }
     });
-}
 
-// Smooth scroll for all internal links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth' });
-        }
+    backToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-});
 
-// Lazy loading for images
-const images = document.querySelectorAll('img');
-const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const img = entry.target;
-            img.style.animation = 'fadeIn 0.5s ease-in';
-            observer.unobserve(img);
-        }
+    backToTop.addEventListener('mouseenter', () => {
+        backToTop.style.transform = 'scale(1.15)';
+        backToTop.style.background = '#c17d67';
     });
-});
 
-images.forEach(img => imageObserver.observe(img));
-
-// Add hover effects for navigation items
-const navItems = document.querySelectorAll('#3rd > div');
-navItems.forEach(item => {
-    item.style.transition = 'transform 0.2s ease';
-    item.addEventListener('mouseenter', () => {
-        item.style.transform = 'translateY(-2px)';
+    backToTop.addEventListener('mouseleave', () => {
+        backToTop.style.transform = 'scale(1)';
+        backToTop.style.background = '#D59680';
     });
-    item.addEventListener('mouseleave', () => {
-        item.style.transform = 'translateY(0)';
+
+    // ========== CURSOR POINTER FOR CLICKABLE ITEMS ==========
+    document.querySelectorAll('#3rd > div').forEach(item => {
+        item.style.cursor = 'pointer';
     });
+
+    console.log('All functionality initialized!');
 });
-
-// Back to top button
-const backToTop = document.createElement('button');
-backToTop.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
-backToTop.style.cssText = `
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #D59680;
-    color: white;
-    border: none;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    z-index: 999;
-    transition: all 0.3s ease;
-`;
-
-document.body.appendChild(backToTop);
-
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 300) {
-        backToTop.style.display = 'flex';
-    } else {
-        backToTop.style.display = 'none';
-    }
-});
-
-backToTop.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-});
-
-backToTop.addEventListener('mouseenter', () => {
-    backToTop.style.transform = 'scale(1.1)';
-});
-
-backToTop.addEventListener('mouseleave', () => {
-    backToTop.style.transform = 'scale(1)';
-});
-
-console.log('Website functionality loaded successfully!');
